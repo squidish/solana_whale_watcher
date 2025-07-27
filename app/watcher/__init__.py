@@ -1,6 +1,4 @@
-import asyncio
 import json
-import pandas as pd
 import websockets
 from solders.rpc.responses import GetTransactionResp
 from solders.transaction_status import UiTransactionStatusMeta
@@ -9,6 +7,8 @@ from solders.pubkey import Pubkey
 from solders.rpc.api import Client
 
 from typing import List, Dict
+
+__all__ = ["extract_sol_changes", "monitor_solana"]
 
 def extract_sol_changes(meta: UiTransactionStatusMeta, account_keys: List[Pubkey]) -> List[Dict]:
     """
@@ -109,8 +109,3 @@ async def monitor_solana(max_events: int = 10, threshold_SOL: float = 0.0) -> Li
 
 
 
-if __name__ == "__main__":
-    results = asyncio.run(monitor_solana(max_events=5, threshold_SOL=0.001))
-    print("FINAL RESULTS:")
-    for r in results:
-        print(r)
