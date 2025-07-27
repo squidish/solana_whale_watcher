@@ -8,13 +8,25 @@ from solders.rpc.api import Client
 
 from typing import List, Dict
 
+LAMPORTS_PER_SOL = 1_000_000_000
+
 __all__ = ["extract_sol_changes", "monitor_solana"]
 
 def extract_sol_changes(meta: UiTransactionStatusMeta, account_keys: List[Pubkey]) -> List[Dict]:
-    """
-    Extracts lamport balance changes from a transaction's meta object and associated account keys.
+    """Return SOL balance changes for each account in a transaction.
 
-    Returns a list of dicts with account, delta_lamports, delta_SOL, direction, and reason.
+    Args:
+        meta: The transaction meta object returned by the RPC API.
+        account_keys: Ordered list of public keys for the transaction accounts.
+
+    Returns:
+        A list where each entry describes the SOL change for an account with the
+        following keys:
+            - ``account``: base58 account string
+            - ``delta_lamports``: change in lamports
+            - ``delta_SOL``: change in SOL
+            - ``direction``: ``"gain"`` or ``"loss"``
+            - ``reason``: text description of the change
     """
     pre = meta.pre_balances
     post = meta.post_balances
@@ -25,7 +37,7 @@ def extract_sol_changes(meta: UiTransactionStatusMeta, account_keys: List[Pubkey
     for i, (before, after) in enumerate(zip(pre, post)):
         if before != after:
             delta = after - before
-            sol_delta = delta / 1e9
+            sol_delta = delta / LAMPORTS_PER_SOL
             direction = "gain" if delta > 0 else "loss"
 
             reason = "received SOL"
