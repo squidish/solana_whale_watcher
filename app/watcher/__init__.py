@@ -1,4 +1,5 @@
 import json
+import logging
 import websockets
 from solders.rpc.responses import GetTransactionResp
 from solders.transaction_status import UiTransactionStatusMeta
@@ -7,6 +8,8 @@ from solders.pubkey import Pubkey
 from solders.rpc.api import Client
 
 from typing import List, Dict
+
+logging.basicConfig(level=logging.INFO)
 
 LAMPORTS_PER_SOL = 1_000_000_000
 
@@ -81,7 +84,7 @@ async def monitor_solana(max_events: int = 10, threshold_SOL: float = 0.0) -> Li
             "params": ["all", {"commitment": "finalized"}]
         }
         await ws.send(json.dumps(req))
-        print("Connected to Solana WebSocket")
+        logging.info("Connected to Solana WebSocket")
 
         count = 0
         while count < max_events:
@@ -109,12 +112,14 @@ async def monitor_solana(max_events: int = 10, threshold_SOL: float = 0.0) -> Li
                 filtered = [c for c in changes if abs(c["delta_SOL"]) >= threshold_SOL]
                 if filtered:
                     for ch in filtered:
-                        print(f"{ch['account']}: {ch['direction']} {abs(ch['delta_SOL']):.9f} SOL ({ch['reason']})")
+                        logging.info(
+                            f"{ch['account']}: {ch['direction']} {abs(ch['delta_SOL']):.9f} SOL ({ch['reason']})"
+                        )
                     sol_changes_accum.extend(filtered)
                     count += 1
 
             except Exception as e:
-                print(f"Error: {e}")
+                logging.error(f"Error: {e}")
                 continue
 
     return sol_changes_accum
